@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 import { getAll, search as searchBook } from "../../BooksAPI";
 import { Book } from "../../components";
-import { Link } from "react-router-dom";
 
 function Search() {
   const [books, setBooks] = useState(null);
@@ -13,19 +13,31 @@ function Search() {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     (async () => {
       try {
-        if (text) {
-          const [allBook, filterBook] = await Promise.all([
-            getAll(),
-            searchBook(text, 20),
-          ]);
+        if (!text) {
+          setBooks(null);
+          return;
+        }
 
+        const query = text;
+
+        const [allBook, filterBook] = await Promise.all([
+          getAll(),
+          searchBook(text, 20),
+        ]);
+
+        if (!Array.isArray(filterBook)) {
+          setBooks(null);
+          return;
+        }
+
+        if (isMounted && text === query) {
           const result = filterBook.map((book) => {
             const value = allBook.find((value) => value.id === book.id);
-
-            if (value) return { ...book, shelf: value.shelf };
-            return { ...book, shelf: "none" };
+            return { ...book, shelf: value ? value.shelf : "none" };
           });
 
           setBooks(result);
@@ -34,6 +46,10 @@ function Search() {
         console.error(error);
       }
     })();
+
+    return () => {
+      isMounted = false;
+    };
   }, [text]);
 
   return (

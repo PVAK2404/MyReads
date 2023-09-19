@@ -6,9 +6,11 @@ function Book({ book, setFlag }) {
 
   const handleChangeShelf = async (event) => {
     try {
-      await update(book, event.target.value);
-      setShelf(event.target.value);
-      setFlag(true);
+      const value = event.target.value;
+
+      await update(book, value);
+      setShelf(value);
+      if (setFlag) setFlag(true);
     } catch (err) {
       console.error(err);
     }
@@ -22,7 +24,9 @@ function Book({ book, setFlag }) {
           style={{
             width: 128,
             height: 193,
-            backgroundImage: `url(${book.imageLinks.thumbnail})`,
+            backgroundImage: book.imageLinks
+              ? `url(${book.imageLinks.thumbnail})`
+              : "",
           }}
         ></div>
         <div className="book-shelf-changer">
@@ -38,11 +42,12 @@ function Book({ book, setFlag }) {
         </div>
       </div>
       <div className="book-title">{book.title}</div>
-      {book.authors.map((author, index) => (
-        <div key={index} className="book-authors">
-          {author}
-        </div>
-      ))}
+      {book.authors &&
+        book.authors.map((author, index) => (
+          <div key={index} className="book-authors">
+            {author}
+          </div>
+        ))}
     </div>
   );
 }
